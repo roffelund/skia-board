@@ -1,7 +1,12 @@
 import React, { useState, useCallback } from "react";
 import { SafeAreaView, StyleSheet, Alert } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { BoardCanvas, BoardItemData, TransformSnapshot } from "skia-board";
+import {
+  BoardCanvas,
+  BoardItemData,
+  TransformSnapshot,
+  SelectionOverlayAction,
+} from "skia-board";
 
 // ─── Sample data ─────────────────────────────────────────────────────────────
 
@@ -118,12 +123,48 @@ export default function App() {
     );
   }, []);
 
+  const getSelectionActions = useCallback(
+    (id: string): SelectionOverlayAction[] => [
+      {
+        key: "delete",
+        label: "🗑️",
+        color: "#FF3B30",
+        textColor: "#fff",
+        onPress: () => handleDelete(id),
+      },
+      {
+        key: "duplicate",
+        label: "📋",
+        color: "#007AFF",
+        textColor: "#fff",
+        onPress: () => {
+          setItems((prev) => {
+            const source = prev.find((i) => i.id === id);
+            if (!source) return prev;
+            return [
+              ...prev,
+              {
+                ...source,
+                id: `${id}-copy-${Date.now()}`,
+                x: (source.x ?? 0) + 20,
+                y: (source.y ?? 0) + 20,
+                zIndex: prev.length,
+              },
+            ];
+          });
+        },
+      },
+    ],
+    [handleDelete],
+  );
+
   return (
     <GestureHandlerRootView style={styles.fill}>
       <SafeAreaView style={styles.fill}>
         <BoardCanvas
           items={items}
           onTransformEnd={handleTransformEnd}
+          selectionActions={getSelectionActions}
           actions={{
             onDelete: handleDelete,
             onGroup: handleGroup,

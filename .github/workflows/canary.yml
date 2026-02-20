@@ -31,7 +31,14 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Set canary version
+        run: |
+          COMMIT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
+          CURRENT=$(node -p "require('./package.json').version")
+          CANARY_VERSION="${CURRENT}-canary.${GITHUB_RUN_NUMBER}.${COMMIT_SHA}"
+          npm version "$CANARY_VERSION" --no-git-tag-version
+
       - name: Publish canary
-        run: npx lerna publish --canary --preid canary --dist-tag canary --yes --no-private
+        run: npm publish --tag canary --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
