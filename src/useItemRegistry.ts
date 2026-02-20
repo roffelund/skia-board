@@ -10,8 +10,8 @@ import { SkImage } from "@shopify/react-native-skia";
  */
 export const useItemRegistry = (items: BoardItemData[] | undefined) => {
   const registry = useRef<ItemRegistry>(new Map());
-  // Version counter — incremented when an image finishes loading to trigger re-render
-  const [imageLoadVersion, setImageLoadVersion] = useState(0);
+  // Version counter — incremented after registry sync & image loads to trigger re-render
+  const [version, setVersion] = useState(0);
 
   // Sync registry with input data
   useEffect(() => {
@@ -55,6 +55,9 @@ export const useItemRegistry = (items: BoardItemData[] | undefined) => {
         });
       }
     });
+
+    // Force a re-render so getSortedItems() picks up the populated registry
+    setVersion((v) => v + 1);
   }, [items]);
 
   /** Set the loaded SkImage for an item and trigger a re-render */
@@ -62,7 +65,7 @@ export const useItemRegistry = (items: BoardItemData[] | undefined) => {
     const item = registry.current.get(id);
     if (item) {
       item.image = skImage;
-      setImageLoadVersion((v) => v + 1);
+      setVersion((v) => v + 1);
     }
   }, []);
 
@@ -114,7 +117,7 @@ export const useItemRegistry = (items: BoardItemData[] | undefined) => {
 
   return {
     registry: registry.current,
-    imageLoadVersion,
+    version,
     getItem,
     getSortedItems,
     findItemAtPoint,
