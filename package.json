@@ -1,0 +1,18 @@
+{
+  "name": "skia-board-repo",
+  "private": true,
+  "workspaces": ["packages/*"],
+  "scripts": {
+    "build": "lerna run build",
+    "lint": "lerna run lint",
+    "publish:release": "lerna publish from-package --yes",
+    "publish:canary": "lerna publish --canary --preid canary --yes",
+    "version:patch": "lerna version patch --conventional-commits --yes",
+    "version:minor": "lerna version minor --conventional-commits --yes",
+    "version:major": "lerna version major --conventional-commits --yes",
+    "version:auto": "lerna version --conventional-commits --yes"
+  },
+  "devDependencies": {
+    "lerna": "^8.1.0"
+  }
+}
