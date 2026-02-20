@@ -1,4 +1,4 @@
-# @homeapp/skia-board
+# @roffelund/skia-board
 
 A generic, high-performance interactive canvas for React Native built with [Skia](https://shopify.github.io/react-native-skia/) and [Reanimated](https://docs.swmansion.com/react-native-reanimated/).
 
