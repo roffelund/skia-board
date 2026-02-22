@@ -1,4 +1,4 @@
-# @roffelund/skia-board
+# react-native-skia-board
 
 A generic, high-performance interactive canvas for React Native built with [Skia](https://shopify.github.io/react-native-skia/) and [Reanimated](https://docs.swmansion.com/react-native-reanimated/).
 
@@ -16,7 +16,7 @@ A generic, high-performance interactive canvas for React Native built with [Skia
 ## Installation
 
 ```bash
-npm install @roffelund/skia-board
+npm install react-native-skia-board
 ```
 
 ### Peer Dependencies
@@ -33,7 +33,7 @@ react-native-worklets >= 0.5.0
 ## Quick Start
 
 ```tsx
-import { BoardCanvas, BoardItemData } from "@roffelund/skia-board";
+import { BoardCanvas, BoardItemData } from "react-native-skia-board";
 
 const items: BoardItemData[] = [
   // Image — loaded asynchronously via loadImage
@@ -156,7 +156,7 @@ A solid color swatch.
 Use `renderItem` for full control over how items are drawn. This must return Skia elements:
 
 ```tsx
-import { SkiaImageItem, SkiaColorItem } from "@roffelund/skia-board";
+import { SkiaImageItem, SkiaColorItem } from "react-native-skia-board";
 
 <BoardCanvas
   items={items}

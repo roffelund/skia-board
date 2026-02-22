@@ -18,7 +18,7 @@ const escape = (p) => p.replace(/[/\\]/g, "[/\\\\]");
 config.resolver.blockList = [
   new RegExp(`${escape(path.resolve(workspaceRoot, "node_modules"))}.*`),
   new RegExp(
-    `${escape(path.resolve(projectRoot, "node_modules", "skia-board", "node_modules"))}.*`,
+    `${escape(path.resolve(projectRoot, "node_modules", "react-native-skia-board", "node_modules"))}.*`,
   ),
 ];
 

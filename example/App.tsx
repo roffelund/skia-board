@@ -6,7 +6,7 @@ import {
   BoardItemData,
   TransformSnapshot,
   SelectionOverlayAction,
-} from "skia-board";
+} from "react-native-skia-board";
 
 // ─── Sample data ─────────────────────────────────────────────────────────────
 
