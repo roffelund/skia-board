@@ -39,6 +39,6 @@ jobs:
           npm version "$CANARY_VERSION" --no-git-tag-version
 
       - name: Publish canary
-        run: npm publish --tag canary --access public --provenance
+        run: npm publish --tag canary --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
