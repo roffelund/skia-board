@@ -130,9 +130,18 @@ export interface ItemRenderState {
 export type ImageLoader = (id: string) => Promise<ArrayBuffer>;
 
 /**
- * Called when an item's transform has changed and should be persisted.
+ * Event emitted when an item has been transformed and the new position should be persisted.
  */
-export type OnTransformEnd = (id: string, snapshot: TransformSnapshot) => void;
+export type ItemTransform = {
+  id: string;
+  snapshot: TransformSnapshot;
+};
+
+/**
+ * Called when one or more items have been transformed and should be persisted.
+ * Always receives an array — solo drags arrive as a single-element array.
+ */
+export type OnTransformEnd = (events: ItemTransform[]) => void;
 
 /**
  * Action callbacks the consumer can optionally provide.

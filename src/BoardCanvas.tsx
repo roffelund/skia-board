@@ -1,11 +1,5 @@
 import { Canvas, Group } from "@shopify/react-native-skia";
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { View, StyleSheet } from "react-native";
 import { GestureDetector } from "react-native-gesture-handler";
 import { useDerivedValue, useSharedValue } from "react-native-reanimated";
@@ -22,6 +16,7 @@ import { useItemRegistry } from "./useItemRegistry";
 import { useCanvasGestureController } from "./useCanvasGestureController";
 import { useMultiSelect } from "./useMultiSelect";
 import { useSkiaImageLoader } from "./useSkiaImageLoader";
+import { useBatchedTransformEnd } from "./useBatchedTransformEnd";
 
 import {
   BoardItemData,
@@ -29,7 +24,7 @@ import {
   ImageLoader,
   ItemRenderState,
   RegistryItem,
-  TransformSnapshot,
+  OnTransformEnd,
 } from "./types";
 
 // ─── Image loader sub-component ──────────────────────────────────────────────
@@ -60,9 +55,9 @@ export interface BoardCanvasProps {
   loadImage?: ImageLoader;
 
   /**
-   * Called when an item's transform has changed and should be persisted.
+   * Called when one or more items have been transformed and should be persisted.
    */
-  onTransformEnd?: (id: string, snapshot: TransformSnapshot) => void;
+  onTransformEnd?: OnTransformEnd;
 
   /**
    * Optional action callbacks for item operations.
@@ -141,7 +136,6 @@ export const BoardCanvas = ({
 
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const multiSelect = useMultiSelect();
-  const [, forceUpdate] = useState(0);
 
   // ─── Camera ──────────────────────────────────────────────────────────
 
@@ -157,42 +151,11 @@ export const BoardCanvas = ({
 
   // ─── Transform persistence ──────────────────────────────────────────
 
-  const pendingUpdates = useRef<Map<string, ReturnType<typeof setTimeout>>>(
-    new Map(),
-  );
-
-  const handleItemTransformEnd = useCallback(
-    (id: string) => {
-      const existing = pendingUpdates.current.get(id);
-      if (existing) clearTimeout(existing);
-
-      const timeoutId = setTimeout(() => {
-        const item = getItem(id);
-        if (!item || !onTransformEnd) return;
-
-        onTransformEnd(id, {
-          x: item.x.value,
-          y: item.y.value,
-          width: item.width.value,
-          height: item.height.value,
-          rotation: item.rotation.value,
-        });
-
-        pendingUpdates.current.delete(id);
-      }, 500);
-
-      pendingUpdates.current.set(id, timeoutId);
-      forceUpdate((n) => n + 1);
-    },
-    [getItem, onTransformEnd],
-  );
-
-  useEffect(() => {
-    return () => {
-      pendingUpdates.current.forEach((timeout) => clearTimeout(timeout));
-      pendingUpdates.current.clear();
-    };
-  }, []);
+  const handleItemTransformEnd = useBatchedTransformEnd({
+    getItem,
+    getGroupItems,
+    onTransformEnd,
+  });
 
   // ─── Selection handler ──────────────────────────────────────────────
 
