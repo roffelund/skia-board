@@ -52,6 +52,7 @@ export type {
   Point,
   TransformSnapshot,
   ImageLoader,
+  ItemTransform,
   OnTransformEnd,
   BoardActions,
   SelectionAction,

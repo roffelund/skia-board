@@ -170,11 +170,12 @@ export const useCanvasGestureController = ({
   const endDrag = useCallback(() => {
     const item = activeItemRef.current;
     if (item) {
-      onItemTransformEnd(item.id);
-      for (const gi of groupItemsRef.current) {
-        if (gi.id !== item.id) {
+      if (groupItemsRef.current.length > 0) {
+        for (const gi of groupItemsRef.current) {
           onItemTransformEnd(gi.id);
         }
+      } else {
+        onItemTransformEnd(item.id);
       }
     }
     activeItemRef.current = null;
