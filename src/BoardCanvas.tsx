@@ -55,7 +55,7 @@ export interface BoardCanvasProps {
   loadImage?: ImageLoader;
 
   /**
-   * Called when an item's transform has changed and should be persisted.
+   * Called when one or more items have been transformed and should be persisted.
    */
   onTransformEnd?: OnTransformEnd;
 
