@@ -32,10 +32,20 @@ export const useBatchedTransformEnd = ({
 }: Params) => {
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dirtyIds = useRef<Set<string>>(new Set());
+  const callbackRef = useRef({ onTransformEnd, getItem });
+  callbackRef.current = { onTransformEnd, getItem };
 
   useEffect(() => {
     return () => {
       if (timer.current) clearTimeout(timer.current);
+      const { onTransformEnd: cb, getItem: gi } = callbackRef.current;
+      if (cb && dirtyIds.current.size > 0) {
+        const events = Array.from(dirtyIds.current)
+          .map((itemId) => gi(itemId))
+          .filter((item): item is RegistryItem => item !== undefined)
+          .map(snapshotItem);
+        cb(events);
+      }
       dirtyIds.current.clear();
     };
   }, []);
