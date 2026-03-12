@@ -76,7 +76,10 @@ export const useItemRegistry = (items: BoardItemData[] | undefined) => {
           existing.groupId = g;
           changed = true;
         }
-        existing.data = item;
+        if (existing.data !== item) {
+          existing.data = item;
+          changed = true;
+        }
       } else {
         registry.current.set(item.id, {
           id: item.id,
