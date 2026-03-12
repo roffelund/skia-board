@@ -16,15 +16,21 @@ export const useItemRegistry = (items: BoardItemData[] | undefined) => {
   // Sync registry with input data
   useEffect(() => {
     if (!items || items.length === 0) {
-      registry.current.clear();
+      if (registry.current.size > 0) {
+        registry.current.clear();
+        setVersion((v) => v + 1);
+      }
       return;
     }
+
+    let changed = false;
 
     // Remove items no longer in the data
     const itemIds = new Set(items.map((item) => item.id));
     for (const id of registry.current.keys()) {
       if (!itemIds.has(id)) {
         registry.current.delete(id);
+        changed = true;
       }
     }
 
@@ -32,13 +38,44 @@ export const useItemRegistry = (items: BoardItemData[] | undefined) => {
     items.forEach((item) => {
       const existing = registry.current.get(item.id);
       if (existing) {
-        existing.x.value = item.x ?? 0;
-        existing.y.value = item.y ?? 0;
-        existing.width.value = item.width ?? 200;
-        existing.height.value = item.height ?? 200;
-        existing.rotation.value = item.rotation ?? 0;
-        existing.zIndex = item.zIndex ?? 0;
-        existing.groupId = item.groupId ?? null;
+        // Only write shared values that actually changed — each write
+        // schedules a UI-thread sync and Skia canvas redraw
+        const x = item.x ?? 0;
+        const y = item.y ?? 0;
+        const w = item.width ?? 200;
+        const h = item.height ?? 200;
+        const r = item.rotation ?? 0;
+        const z = item.zIndex ?? 0;
+        const g = item.groupId ?? null;
+
+        if (existing.x.value !== x) {
+          existing.x.value = x;
+          changed = true;
+        }
+        if (existing.y.value !== y) {
+          existing.y.value = y;
+          changed = true;
+        }
+        if (existing.width.value !== w) {
+          existing.width.value = w;
+          changed = true;
+        }
+        if (existing.height.value !== h) {
+          existing.height.value = h;
+          changed = true;
+        }
+        if (existing.rotation.value !== r) {
+          existing.rotation.value = r;
+          changed = true;
+        }
+        if (existing.zIndex !== z) {
+          existing.zIndex = z;
+          changed = true;
+        }
+        if (existing.groupId !== g) {
+          existing.groupId = g;
+          changed = true;
+        }
         existing.data = item;
       } else {
         registry.current.set(item.id, {
@@ -53,11 +90,14 @@ export const useItemRegistry = (items: BoardItemData[] | undefined) => {
           image: null,
           data: item,
         });
+        changed = true;
       }
     });
 
-    // Force a re-render so getSortedItems() picks up the populated registry
-    setVersion((v) => v + 1);
+    // Only re-render if something actually changed
+    if (changed) {
+      setVersion((v) => v + 1);
+    }
   }, [items]);
 
   /** Set the loaded SkImage for an item and trigger a re-render */
