@@ -77,20 +77,24 @@ export default function App() {
   const [items, setItems] = useState<BoardItemData[]>(INITIAL_ITEMS);
 
   const handleTransformEnd = useCallback(
-    (id: string, snapshot: TransformSnapshot) => {
-      setItems((prev) =>
-        prev.map((item) =>
-          item.id === id
-            ? {
-                ...item,
-                x: snapshot.x,
-                y: snapshot.y,
-                width: snapshot.width,
-                height: snapshot.height,
-              }
-            : item,
-        ),
-      );
+    (events: { id: string; snapshot: TransformSnapshot }[]) => {
+      setItems((prev) => {
+        let next = prev;
+        for (const { id, snapshot } of events) {
+          next = next.map((item) =>
+            item.id === id
+              ? {
+                  ...item,
+                  x: snapshot.x,
+                  y: snapshot.y,
+                  width: snapshot.width,
+                  height: snapshot.height,
+                }
+              : item,
+          );
+        }
+        return next;
+      });
     },
     [],
   );

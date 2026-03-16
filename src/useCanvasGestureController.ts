@@ -24,6 +24,17 @@ export interface UseCanvasGestureControllerParams {
   onMultiSelectActivate: (id: string) => void;
   onMultiSelectToggle: (id: string) => void;
   onMultiSelectClear: () => void;
+  /**
+   * Optional: called with screen (x, y) to check if the touch is on the minimap.
+   * If it returns true, the gesture controller enters minimap-panning mode.
+   * The callback should also move the camera to the corresponding world point.
+   */
+  onMinimapPan?: (screenX: number, screenY: number) => boolean;
+  /**
+   * Optional: called with screen (x, y) for continued minimap drags.
+   * Uses cached world bounds from the initial onMinimapPan call.
+   */
+  onMinimapPanContinue?: (screenX: number, screenY: number) => boolean;
 }
 
 /**
@@ -51,9 +62,11 @@ export const useCanvasGestureController = ({
   onMultiSelectActivate,
   onMultiSelectToggle,
   onMultiSelectClear,
+  onMinimapPan,
+  onMinimapPanContinue,
 }: UseCanvasGestureControllerParams) => {
   // Gesture state as shared values (accessible from worklets)
-  // mode: 0=idle, 1=panning-canvas, 2=dragging-item
+  // mode: 0=idle, 1=panning-canvas, 2=dragging-item, 3=minimap-panning
   const mode = useSharedValue(0);
 
   // Saved values for gesture start
@@ -77,6 +90,12 @@ export const useCanvasGestureController = ({
    */
   const beginGesture = useCallback(
     (screenX: number, screenY: number) => {
+      // Check minimap first
+      if (onMinimapPan && onMinimapPan(screenX, screenY)) {
+        mode.value = 3; // minimap-panning
+        return;
+      }
+
       const canvasX = (screenX - translateX.value) / scale.value;
       const canvasY = (screenY - translateY.value) / scale.value;
       const hitItem = findItemAtPoint({ x: canvasX, y: canvasY });
@@ -138,6 +157,7 @@ export const useCanvasGestureController = ({
       savedCameraY,
       isMultiSelectActive,
       multiSelectIds,
+      onMinimapPan,
     ],
   );
 
@@ -246,6 +266,20 @@ export const useCanvasGestureController = ({
     ],
   );
 
+  /**
+   * JS-thread: continue minimap panning at a new screen position.
+   */
+  const continueMinimapPan = useCallback(
+    (screenX: number, screenY: number) => {
+      if (onMinimapPanContinue) {
+        onMinimapPanContinue(screenX, screenY);
+      } else if (onMinimapPan) {
+        onMinimapPan(screenX, screenY);
+      }
+    },
+    [onMinimapPanContinue, onMinimapPan],
+  );
+
   // ─── Gestures ──────────────────────────────────────────────────────────────
 
   const panGesture = Gesture.Pan()
@@ -262,6 +296,8 @@ export const useCanvasGestureController = ({
         const dx = e.translationX / scale.value;
         const dy = e.translationY / scale.value;
         scheduleOnRN(applyDrag, dx, dy);
+      } else if (mode.value === 3) {
+        scheduleOnRN(continueMinimapPan, e.x, e.y);
       }
     })
     .onEnd(() => {
