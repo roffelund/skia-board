@@ -33,6 +33,9 @@ export type { MultiSelectToolbarProps } from "./MultiSelectToolbar";
 export { ZoomControls } from "./ZoomControls";
 export type { ZoomControlsProps } from "./ZoomControls";
 
+export { Minimap } from "./Minimap";
+export type { MinimapProps } from "./Minimap";
+
 // ─── Hooks (for advanced composition) ────────────────────────────────────────
 export { useItemRegistry } from "./useItemRegistry";
 export { useCanvasGestureController } from "./useCanvasGestureController";
