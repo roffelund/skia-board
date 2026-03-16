@@ -30,6 +30,9 @@ export type {
 export { MultiSelectToolbar } from "./MultiSelectToolbar";
 export type { MultiSelectToolbarProps } from "./MultiSelectToolbar";
 
+export { ZoomControls } from "./ZoomControls";
+export type { ZoomControlsProps } from "./ZoomControls";
+
 // ─── Hooks (for advanced composition) ────────────────────────────────────────
 export { useItemRegistry } from "./useItemRegistry";
 export { useCanvasGestureController } from "./useCanvasGestureController";

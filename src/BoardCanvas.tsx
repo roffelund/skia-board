@@ -11,6 +11,7 @@ import {
   MultiSelectToolbar,
   MultiSelectToolbarProps,
 } from "./MultiSelectToolbar";
+import { ZoomControls, ZoomControlsProps } from "./ZoomControls";
 
 import { useItemRegistry } from "./useItemRegistry";
 import { useCanvasGestureController } from "./useCanvasGestureController";
@@ -100,6 +101,13 @@ export interface BoardCanvasProps {
   };
 
   /**
+   * Show zoom control buttons (+, −, reset).
+   * Pass `true` for defaults, or an object to customize appearance/position.
+   * Useful on web where pinch-to-zoom is unavailable.
+   */
+  zoomControls?: boolean | Omit<ZoomControlsProps, "scale" | "translateX" | "translateY">;
+
+  /**
    * Optional children to render inside the canvas container (e.g. FABs, snackbars).
    */
   children?: React.ReactNode;
@@ -125,6 +133,7 @@ export const BoardCanvas = ({
   renderMultiSelectToolbar,
   grid,
   colors,
+  zoomControls,
   children,
 }: BoardCanvasProps) => {
   // ─── Registry ────────────────────────────────────────────────────────
@@ -310,6 +319,16 @@ export const BoardCanvas = ({
           onUngroup={handleUngroup}
           onClear={multiSelect.clear}
           renderToolbar={renderMultiSelectToolbar}
+        />
+      )}
+
+      {/* Zoom controls */}
+      {zoomControls && (
+        <ZoomControls
+          scale={scale}
+          translateX={translateX}
+          translateY={translateY}
+          {...(typeof zoomControls === "object" ? zoomControls : {})}
         />
       )}
 
