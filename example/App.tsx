@@ -171,6 +171,7 @@ export default function App() {
             onUngroup: handleUngroup,
           }}
           grid={{ gridSize: 40, color: "#e0e0e0" }}
+          minimap
         />
       </SafeAreaView>
     </GestureHandlerRootView>

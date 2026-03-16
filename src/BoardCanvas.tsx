@@ -1,6 +1,11 @@
 import { Canvas, Group } from "@shopify/react-native-skia";
 import React, { useCallback, useMemo, useState } from "react";
-import { View, StyleSheet } from "react-native";
+import {
+  LayoutChangeEvent,
+  View,
+  StyleSheet,
+  useWindowDimensions,
+} from "react-native";
 import { GestureDetector } from "react-native-gesture-handler";
 import { useDerivedValue, useSharedValue } from "react-native-reanimated";
 
@@ -12,6 +17,7 @@ import {
   MultiSelectToolbarProps,
 } from "./MultiSelectToolbar";
 import { ZoomControls, ZoomControlsProps } from "./ZoomControls";
+import { Minimap, MinimapProps } from "./Minimap";
 
 import { useItemRegistry } from "./useItemRegistry";
 import { useCanvasGestureController } from "./useCanvasGestureController";
@@ -105,7 +111,25 @@ export interface BoardCanvasProps {
    * Pass `true` for defaults, or an object to customize appearance/position.
    * Useful on web where pinch-to-zoom is unavailable.
    */
-  zoomControls?: boolean | Omit<ZoomControlsProps, "scale" | "translateX" | "translateY">;
+  zoomControls?:
+    | boolean
+    | Omit<ZoomControlsProps, "scale" | "translateX" | "translateY">;
+
+  /**
+   * Show a minimap overlay with a bird's-eye view of all items.
+   * Pass `true` for defaults, or an object to customize appearance/position.
+   */
+  minimap?:
+    | boolean
+    | Omit<
+        MinimapProps,
+        | "items"
+        | "scale"
+        | "translateX"
+        | "translateY"
+        | "canvasWidth"
+        | "canvasHeight"
+      >;
 
   /**
    * Optional children to render inside the canvas container (e.g. FABs, snackbars).
@@ -134,6 +158,7 @@ export const BoardCanvas = ({
   grid,
   colors,
   zoomControls,
+  minimap,
   children,
 }: BoardCanvasProps) => {
   // ─── Registry ────────────────────────────────────────────────────────
@@ -145,6 +170,22 @@ export const BoardCanvas = ({
 
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const multiSelect = useMultiSelect();
+
+  // ─── Canvas layout (needed by minimap) ──────────────────────────────
+
+  const windowDims = useWindowDimensions();
+  const [canvasLayout, setCanvasLayout] = useState<{
+    width: number;
+    height: number;
+  } | null>(null);
+
+  const handleCanvasLayout = useCallback((e: LayoutChangeEvent) => {
+    const { width, height } = e.nativeEvent.layout;
+    setCanvasLayout({ width, height });
+  }, []);
+
+  // Use measured layout if available, otherwise fall back to window size
+  const canvasSize = canvasLayout ?? windowDims;
 
   // ─── Camera ──────────────────────────────────────────────────────────
 
@@ -249,7 +290,7 @@ export const BoardCanvas = ({
   return (
     <View style={styles.container}>
       <GestureDetector gesture={gesture}>
-        <View style={styles.canvasContainer}>
+        <View style={styles.canvasContainer} onLayout={handleCanvasLayout}>
           <Canvas style={styles.canvas}>
             <Group transform={cameraTransform}>
               {grid !== false && (
@@ -279,6 +320,19 @@ export const BoardCanvas = ({
                 );
               })}
             </Group>
+
+            {/* Minimap */}
+            {minimap && canvasSize.width > 0 && (
+              <Minimap
+                items={sortedItems}
+                scale={scale}
+                translateX={translateX}
+                translateY={translateY}
+                canvasWidth={canvasSize.width}
+                canvasHeight={canvasSize.height}
+                {...(typeof minimap === "object" ? minimap : {})}
+              />
+            )}
           </Canvas>
         </View>
       </GestureDetector>
