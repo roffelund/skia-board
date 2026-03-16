@@ -11,6 +11,7 @@ A generic, high-performance interactive canvas for React Native built with [Skia
 - **Long-press to multiselect** — select multiple items, then group/ungroup
 - **Grouping** — items move together when grouped; group/ungroup via toolbar
 - **Custom rendering** — provide your own `renderItem` for full control
+- **Minimap** — optional bird's-eye overview with drag-to-navigate
 - **Fully generic** — no hardcoded API calls, auth, or UI libraries. You provide callbacks.
 
 ## Installation
@@ -89,7 +90,9 @@ export default function MyBoard() {
     <BoardCanvas
       items={items}
       loadImage={loadImage}
-      onTransformEnd={(id, snapshot) => api.updatePosition(id, snapshot)}
+      onTransformEnd={(events) =>
+        events.forEach(({ id, snapshot }) => api.updatePosition(id, snapshot))
+      }
       actions={{
         onDelete: (id) => api.deleteItem(id),
         onGroup: (ids) => api.createGroup(ids),
@@ -142,13 +145,15 @@ A solid color swatch.
 | -------------------------- | ------------------------------------------ | ----------------------------------------------- |
 | `items`                    | `BoardItemData[]`                          | Array of typed items to display                 |
 | `loadImage`                | `(id: string) => Promise<ArrayBuffer>`     | Loads image bytes (only needed for image items) |
-| `onTransformEnd`           | `(id, snapshot) => void`                   | Called when a drag ends to persist position     |
+| `onTransformEnd`           | `(events: ItemTransform[]) => void`        | Called when a drag ends to persist positions    |
 | `actions`                  | `BoardActions`                             | Callbacks for delete, duplicate, group, etc.    |
 | `selectionActions`         | `(id: string) => SelectionOverlayAction[]` | Build overlay action buttons per item           |
 | `renderItem`               | `(item, state) => ReactNode`               | Custom Skia renderer (replaces built-in)        |
 | `renderMultiSelectToolbar` | `(props) => ReactNode`                     | Custom multiselect toolbar                      |
 | `grid`                     | `SkiaGridProps \| false`                   | Grid configuration or `false` to hide           |
 | `colors`                   | `object`                                   | Selection/group border colors                   |
+| `zoomControls`             | `boolean \| ZoomControlsProps`             | Show +/−/reset zoom buttons                     |
+| `minimap`                  | `boolean \| MinimapProps`                  | Show a minimap overlay (drag to navigate)       |
 | `children`                 | `ReactNode`                                | Extra UI (FABs, snackbars, etc.)                |
 
 ### Custom Rendering
@@ -173,6 +178,47 @@ import { SkiaImageItem, SkiaColorItem } from "react-native-skia-board";
 />;
 ```
 
+### Minimap
+
+Enable a bird's-eye minimap overlay with a single prop:
+
+```tsx
+<BoardCanvas items={items} minimap />
+```
+
+Pass an object to customize appearance and position:
+
+```tsx
+<BoardCanvas
+  items={items}
+  minimap={{
+    width: 180,
+    height: 120,
+    position: "bottom-left",
+    margin: 16,
+    backgroundColor: "rgba(0,0,0,0.8)",
+    itemColor: "rgba(255,255,255,0.6)",
+    viewportColor: "rgba(59,130,246,0.25)",
+    viewportBorderColor: "rgba(59,130,246,0.9)",
+  }}
+/>
+```
+
+The minimap shows all items and the current viewport. Drag on the minimap to navigate the canvas directly.
+
+| Option                | Type     | Default                      |
+| --------------------- | -------- | ---------------------------- |
+| `width`               | `number` | `140`                        |
+| `height`              | `number` | `100`                        |
+| `position`            | `string` | `"bottom-right"`             |
+| `margin`              | `number` | `12`                         |
+| `backgroundColor`     | `string` | `"rgba(255,255,255,0.92)"`   |
+| `borderColor`         | `string` | `"rgba(0,0,0,0.2)"`         |
+| `itemColor`           | `string` | `"rgba(100,100,100,0.6)"`   |
+| `viewportColor`       | `string` | `"rgba(59,130,246,0.2)"`    |
+| `viewportBorderColor` | `string` | `"rgba(59,130,246,0.8)"`    |
+| `borderRadius`        | `number` | `6`                          |
+
 ### Hooks (advanced)
 
 All internal hooks are exported for custom composition:
@@ -193,3 +239,4 @@ All internal hooks are exported for custom composition:
 | Long-press on item      | Enter multiselect mode      |
 | Tap items (multiselect) | Toggle selection            |
 | Pinch                   | Zoom canvas                 |
+| Drag on minimap         | Pan to that position        |

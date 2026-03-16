@@ -1,6 +1,6 @@
 {
   "name": "react-native-skia-board",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "A generic, high-performance Skia-based board canvas for React Native",
   "license": "MIT",
   "main": "dist/index.js",
