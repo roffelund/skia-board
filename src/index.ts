@@ -1,6 +1,6 @@
 // ─── Main component ──────────────────────────────────────────────────────────
 export { BoardCanvas } from "./BoardCanvas";
-export type { BoardCanvasProps } from "./BoardCanvas";
+export type { BoardCanvasProps, BoardCanvasRef } from "./BoardCanvas";
 
 // ─── Sub-components (for advanced composition) ───────────────────────────────
 export { DefaultItemRenderer } from "./DefaultItemRenderer";

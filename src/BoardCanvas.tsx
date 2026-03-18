@@ -1,5 +1,5 @@
 import { Canvas, Group } from "@shopify/react-native-skia";
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, { useCallback, useMemo, useRef, useState, useImperativeHandle, forwardRef } from "react";
 import {
   LayoutChangeEvent,
   View,
@@ -30,6 +30,7 @@ import {
   BoardActions,
   ImageLoader,
   ItemRenderState,
+  Point,
   RegistryItem,
   OnTransformEnd,
 } from "./types";
@@ -138,6 +139,14 @@ export interface BoardCanvasProps {
 }
 
 /**
+ * Imperative handle exposed via ref on BoardCanvas.
+ */
+export interface BoardCanvasRef {
+  /** Returns the world-space point at the center of the current viewport. */
+  getViewportCenter: () => Point;
+}
+
+/**
  * A generic, self-contained board canvas built with Skia.
  *
  * Features:
@@ -147,20 +156,24 @@ export interface BoardCanvasProps {
  * - Grouping / ungrouping via callbacks
  * - Fully customizable actions and appearance
  */
-export const BoardCanvas = ({
-  items,
-  loadImage,
-  onTransformEnd,
-  actions,
-  selectionActions,
-  renderItem,
-  renderMultiSelectToolbar,
-  grid,
-  colors,
-  zoomControls,
-  minimap,
-  children,
-}: BoardCanvasProps) => {
+export const BoardCanvas = forwardRef<BoardCanvasRef, BoardCanvasProps>(
+  (
+    {
+      items,
+      loadImage,
+      onTransformEnd,
+      actions,
+      selectionActions,
+      renderItem,
+      renderMultiSelectToolbar,
+      grid,
+      colors,
+      zoomControls,
+      minimap,
+      children,
+    },
+    ref,
+  ) => {
   // ─── Registry ────────────────────────────────────────────────────────
 
   const { getItem, getSortedItems, findItemAtPoint, getGroupItems, setImage } =
@@ -198,6 +211,21 @@ export const BoardCanvas = ({
     { translateY: translateY.value },
     { scale: scale.value },
   ]);
+
+  // ─── Imperative handle ─────────────────────────────────────────────
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      getViewportCenter: () => {
+        const s = scale.value || 1;
+        const cx = (-translateX.value + canvasSize.width / 2) / s;
+        const cy = (-translateY.value + canvasSize.height / 2) / s;
+        return { x: cx, y: cy };
+      },
+    }),
+    [scale, translateX, translateY, canvasSize],
+  );
 
   // ─── Transform persistence ──────────────────────────────────────────
 
@@ -517,7 +545,8 @@ export const BoardCanvas = ({
       {children}
     </View>
   );
-};
+},
+);
 
 const styles = StyleSheet.create({
   container: {
