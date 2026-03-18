@@ -35,6 +35,7 @@ export interface UrlBoardItem extends BoardItemBase {
   url: string;
   title?: string;
   description?: string;
+  imageUrl?: string;
 }
 
 /** A text note rendered directly on the canvas. */
