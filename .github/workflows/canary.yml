@@ -11,8 +11,6 @@ permissions:
 jobs:
   canary:
     runs-on: ubuntu-latest
-    # Only run canary on non-tag pushes (tags trigger the release workflow)
-    if: ${{ !startsWith(github.ref, 'refs/tags/') }}
 
     steps:
       - uses: actions/checkout@v4
@@ -39,7 +37,6 @@ jobs:
           npm version "$CANARY_VERSION" --no-git-tag-version
 
       - name: Publish canary
-        if: github.event_name == 'push'
         run: npm publish --tag canary --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
