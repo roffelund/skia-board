@@ -1,8 +1,6 @@
 name: Canary Release
 
 on:
-  push:
-    branches: [main]
   pull_request:
     branches: [main]
 
@@ -41,7 +39,6 @@ jobs:
           npm version "$CANARY_VERSION" --no-git-tag-version
 
       - name: Publish canary
-        if: github.event_name == 'push'
         run: npm publish --tag canary --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
