@@ -32,7 +32,8 @@ jobs:
       - name: Set canary version
         run: |
           COMMIT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
-          CURRENT=$(node -p "require('./package.json').version")
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          CURRENT="${LATEST_TAG#v}"
           CANARY_VERSION="${CURRENT}-canary.${GITHUB_RUN_NUMBER}.${COMMIT_SHA}"
           npm version "$CANARY_VERSION" --no-git-tag-version
 

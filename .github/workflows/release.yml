@@ -102,7 +102,16 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Bump version in package.json (creates commit + tag locally)
+          # Use latest git tag as the base version (package.json may be stale
+          # since we don't push version bump commits to the protected branch)
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          CURRENT="${LATEST_TAG#v}"
+          echo "Current version from tag: $CURRENT"
+
+          # Sync package.json to the tag version before bumping
+          npm version "$CURRENT" --no-git-tag-version --allow-same-version
+
+          # Bump version
           NEW_VERSION=$(npm version ${{ steps.bump.outputs.bump }} --no-git-tag-version)
           echo "version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
           echo "New version: $NEW_VERSION"
