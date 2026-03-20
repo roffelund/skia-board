@@ -95,15 +95,18 @@ export const SkiaUrlItem = ({
 
   // Title paragraph (bold, larger)
   const titleParagraph = useMemo(() => {
-    const p = Skia.ParagraphBuilder.Make({
+    const style = {
       maxLines: 2,
-      ellipsis: "…",
+      ellipsis: "\u2026",
       textStyle: {
         fontSize: 14,
         fontStyle: { weight: 700 },
         color: Skia.Color("#1a1a1a"),
       },
-    }, fontMgr)
+    } as const;
+    const p = (fontMgr
+      ? Skia.ParagraphBuilder.Make(style, fontMgr)
+      : Skia.ParagraphBuilder.Make(style))
       .addText(data.title || data.url)
       .build();
 
@@ -113,14 +116,17 @@ export const SkiaUrlItem = ({
 
   // URL paragraph (smaller, dimmer)
   const urlParagraph = useMemo(() => {
-    const p = Skia.ParagraphBuilder.Make({
+    const style = {
       maxLines: 1,
-      ellipsis: "…",
+      ellipsis: "\u2026",
       textStyle: {
         fontSize: 11,
         color: Skia.Color("#888888"),
       },
-    }, fontMgr)
+    } as const;
+    const p = (fontMgr
+      ? Skia.ParagraphBuilder.Make(style, fontMgr)
+      : Skia.ParagraphBuilder.Make(style))
       .addText(data.url)
       .build();
 
@@ -132,14 +138,17 @@ export const SkiaUrlItem = ({
   const descParagraph = useMemo(() => {
     if (!data.description) return null;
 
-    const p = Skia.ParagraphBuilder.Make({
+    const style = {
       maxLines: 3,
-      ellipsis: "…",
+      ellipsis: "\u2026",
       textStyle: {
         fontSize: 12,
         color: Skia.Color("#555555"),
       },
-    }, fontMgr)
+    } as const;
+    const p = (fontMgr
+      ? Skia.ParagraphBuilder.Make(style, fontMgr)
+      : Skia.ParagraphBuilder.Make(style))
       .addText(data.description)
       .build();
 

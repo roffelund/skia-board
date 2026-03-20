@@ -47,12 +47,19 @@ export const SkiaTextItem = ({
     const fontColor = data.fontColor ?? "#333333";
     const layoutWidth = Math.max((data.width ?? 200) - PADDING * 2, 50);
 
-    const p = Skia.ParagraphBuilder.Make({
-      textStyle: {
-        fontSize,
-        color: Skia.Color(fontColor),
-      },
-    }, fontMgr)
+    const p = (fontMgr
+      ? Skia.ParagraphBuilder.Make({
+          textStyle: {
+            fontSize,
+            color: Skia.Color(fontColor),
+          },
+        }, fontMgr)
+      : Skia.ParagraphBuilder.Make({
+          textStyle: {
+            fontSize,
+            color: Skia.Color(fontColor),
+          },
+        }))
       .addText(data.text)
       .build();
 
