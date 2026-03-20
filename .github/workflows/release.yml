@@ -8,6 +8,17 @@ on:
       - ".github/workflows/canary.yml"
       - "README.md"
   workflow_dispatch:
+    inputs:
+      bump:
+        description: "Force version bump (overrides commit detection)"
+        required: false
+        type: choice
+        options:
+          - auto
+          - patch
+          - minor
+          - major
+        default: auto
 
 permissions:
   contents: write
@@ -66,6 +77,13 @@ jobs:
           # Check for fixes, perf, refactor (patch)
           elif echo "$COMMITS" | grep -qiE "^(fix|perf|refactor)(\(.+\))?:"; then
             BUMP="patch"
+          fi
+
+          # Manual override from workflow_dispatch
+          MANUAL_BUMP="${{ github.event.inputs.bump }}"
+          if [ -n "$MANUAL_BUMP" ] && [ "$MANUAL_BUMP" != "auto" ]; then
+            BUMP="$MANUAL_BUMP"
+            echo "Manual bump override: $BUMP"
           fi
 
           if [ "$BUMP" = "none" ]; then
