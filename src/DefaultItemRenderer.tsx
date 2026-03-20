@@ -1,4 +1,5 @@
 import React from "react";
+import { SkTypefaceFontProvider } from "@shopify/react-native-skia";
 import { RegistryItem } from "./types";
 import { SkiaImageItem } from "./SkiaImageItem";
 import { SkiaColorItem } from "./SkiaColorItem";
@@ -15,6 +16,8 @@ export interface DefaultItemRendererProps {
   multiSelectionColor?: string;
   /** Group border color. */
   groupColor?: string;
+  /** Font provider for Paragraph text rendering (required on web). */
+  fontMgr?: SkTypefaceFontProvider;
 }
 
 /**
@@ -31,6 +34,7 @@ export const DefaultItemRenderer = ({
   selectionColor,
   multiSelectionColor,
   groupColor,
+  fontMgr,
 }: DefaultItemRendererProps) => {
   const borderProps = {
     isSelected,
@@ -46,9 +50,9 @@ export const DefaultItemRenderer = ({
     case "color":
       return <SkiaColorItem item={item} {...borderProps} />;
     case "text":
-      return <SkiaTextItem item={item} {...borderProps} />;
+      return <SkiaTextItem item={item} fontMgr={fontMgr} {...borderProps} />;
     case "url":
-      return <SkiaUrlItem item={item} {...borderProps} />;
+      return <SkiaUrlItem item={item} fontMgr={fontMgr} {...borderProps} />;
     default:
       // Unknown type — render as a plain image item (graceful fallback)
       return <SkiaImageItem item={item} {...borderProps} />;

@@ -1,4 +1,4 @@
-import { Canvas, Group } from "@shopify/react-native-skia";
+import { Canvas, Group, SkTypefaceFontProvider } from "@shopify/react-native-skia";
 import React, {
   useCallback,
   useMemo,
@@ -140,6 +140,12 @@ export interface BoardCanvasProps {
       >;
 
   /**
+   * Font provider for Skia Paragraph text rendering.
+   * Required on web; on native, system fonts are used automatically if omitted.
+   */
+  fontMgr?: SkTypefaceFontProvider | null;
+
+  /**
    * Optional children to render inside the canvas container (e.g. FABs, snackbars).
    */
   children?: React.ReactNode;
@@ -177,6 +183,7 @@ export const BoardCanvas = forwardRef<BoardCanvasRef, BoardCanvasProps>(
       colors,
       zoomControls,
       minimap,
+      fontMgr,
       children,
     },
     ref,
@@ -498,8 +505,7 @@ export const BoardCanvas = forwardRef<BoardCanvasRef, BoardCanvasProps>(
                   return (
                     <DefaultItemRenderer
                       key={item.id}
-                      item={item}
-                      {...state}
+                      item={item}                      fontMgr={fontMgr ?? undefined}                      {...state}
                       {...colors}
                     />
                   );

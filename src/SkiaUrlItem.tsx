@@ -11,6 +11,7 @@ import {
   ClipOp,
   rrect,
   rect,
+  SkTypefaceFontProvider,
 } from "@shopify/react-native-skia";
 import { useDerivedValue } from "react-native-reanimated";
 import { RegistryItem, UrlBoardItem } from "./types";
@@ -25,6 +26,8 @@ export interface SkiaUrlItemProps {
   multiSelectionColor?: string;
   /** Group border color. Default "#9C27B0". */
   groupColor?: string;
+  /** Font provider for Paragraph text rendering (required on web). */
+  fontMgr?: SkTypefaceFontProvider;
 }
 
 const PADDING = 12;
@@ -42,6 +45,7 @@ export const SkiaUrlItem = ({
   selectionColor = "#2196F3",
   multiSelectionColor = "#FF9800",
   groupColor = "#9C27B0",
+  fontMgr,
 }: SkiaUrlItemProps) => {
   const data = item.data as UrlBoardItem;
   const [ogImage, setOgImage] = useState<SkImage | null>(null);
@@ -99,13 +103,13 @@ export const SkiaUrlItem = ({
         fontStyle: { weight: 700 },
         color: Skia.Color("#1a1a1a"),
       },
-    })
+    }, fontMgr)
       .addText(data.title || data.url)
       .build();
 
     p.layout(contentWidth);
     return p;
-  }, [data.title, data.url, contentWidth]);
+  }, [data.title, data.url, contentWidth, fontMgr]);
 
   // URL paragraph (smaller, dimmer)
   const urlParagraph = useMemo(() => {
@@ -116,13 +120,13 @@ export const SkiaUrlItem = ({
         fontSize: 11,
         color: Skia.Color("#888888"),
       },
-    })
+    }, fontMgr)
       .addText(data.url)
       .build();
 
     p.layout(contentWidth);
     return p;
-  }, [data.url, contentWidth]);
+  }, [data.url, contentWidth, fontMgr]);
 
   // Description paragraph (optional)
   const descParagraph = useMemo(() => {
@@ -135,30 +139,26 @@ export const SkiaUrlItem = ({
         fontSize: 12,
         color: Skia.Color("#555555"),
       },
-    })
+    }, fontMgr)
       .addText(data.description)
       .build();
 
     p.layout(contentWidth);
     return p;
-  }, [data.description, contentWidth]);
+  }, [data.description, contentWidth, fontMgr]);
 
   // Pre-computed paragraph heights for layout
   const titleHeight = titleParagraph.getHeight();
   const descHeight = descParagraph?.getHeight() ?? 0;
 
   // Derived positions using shared values
-  const accentY = useDerivedValue(
-    () => item.y.value + textTopOffset + 8,
-  );
+  const accentY = useDerivedValue(() => item.y.value + textTopOffset + 8);
   const accentHeight = useDerivedValue(
     () => item.height.value - textTopOffset - 16,
   );
 
   const titleX = useDerivedValue(() => item.x.value + ACCENT_WIDTH + PADDING);
-  const titleY = useDerivedValue(
-    () => item.y.value + textTopOffset + PADDING,
-  );
+  const titleY = useDerivedValue(() => item.y.value + textTopOffset + PADDING);
   const textWidth = useDerivedValue(() =>
     Math.max(item.width.value - PADDING * 2 - ACCENT_WIDTH, 50),
   );
@@ -182,7 +182,11 @@ export const SkiaUrlItem = ({
 
   // Clip rect for rounding the top corners of the image
   const clipRRect = useDerivedValue(() =>
-    rrect(rect(item.x.value, item.y.value, item.width.value, IMAGE_HEIGHT), 8, 8),
+    rrect(
+      rect(item.x.value, item.y.value, item.width.value, IMAGE_HEIGHT),
+      8,
+      8,
+    ),
   );
 
   return (

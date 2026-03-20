@@ -6,6 +6,7 @@ import {
   Rect,
   DashPathEffect,
   Skia,
+  SkTypefaceFontProvider,
 } from "@shopify/react-native-skia";
 import { useDerivedValue } from "react-native-reanimated";
 import { RegistryItem, TextBoardItem } from "./types";
@@ -20,6 +21,8 @@ export interface SkiaTextItemProps {
   multiSelectionColor?: string;
   /** Group border color. Default "#9C27B0". */
   groupColor?: string;
+  /** Font provider for Paragraph text rendering (required on web). */
+  fontMgr?: SkTypefaceFontProvider;
 }
 
 const PADDING = 12;
@@ -35,6 +38,7 @@ export const SkiaTextItem = ({
   selectionColor = "#2196F3",
   multiSelectionColor = "#FF9800",
   groupColor = "#9C27B0",
+  fontMgr,
 }: SkiaTextItemProps) => {
   const data = item.data as TextBoardItem;
 
@@ -48,13 +52,13 @@ export const SkiaTextItem = ({
         fontSize,
         color: Skia.Color(fontColor),
       },
-    })
+    }, fontMgr)
       .addText(data.text)
       .build();
 
     p.layout(layoutWidth);
     return p;
-  }, [data.text, data.fontSize, data.fontColor, data.width]);
+  }, [data.text, data.fontSize, data.fontColor, data.width, fontMgr]);
 
   const textX = useDerivedValue(() => item.x.value + PADDING);
   const textY = useDerivedValue(() => item.y.value + PADDING);
