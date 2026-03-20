@@ -11,8 +11,6 @@ permissions:
 jobs:
   canary:
     runs-on: ubuntu-latest
-    # Only run canary on non-tag pushes (tags trigger the release workflow)
-    if: ${{ !startsWith(github.ref, 'refs/tags/') }}
 
     steps:
       - uses: actions/checkout@v4

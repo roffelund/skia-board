@@ -8,6 +8,17 @@ on:
       - ".github/workflows/canary.yml"
       - "README.md"
   workflow_dispatch:
+    inputs:
+      bump:
+        description: "Force version bump (overrides commit detection)"
+        required: false
+        type: choice
+        options:
+          - auto
+          - patch
+          - minor
+          - major
+        default: auto
 
 permissions:
   contents: write
@@ -16,8 +27,6 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
-    # Skip if the last commit was from this workflow (version bump commit)
-    if: ${{ !startsWith(github.event.head_commit.message, 'chore(release):') }}
 
     steps:
       - uses: actions/checkout@v4
@@ -70,6 +79,13 @@ jobs:
             BUMP="patch"
           fi
 
+          # Manual override from workflow_dispatch
+          MANUAL_BUMP="${{ github.event.inputs.bump }}"
+          if [ -n "$MANUAL_BUMP" ] && [ "$MANUAL_BUMP" != "auto" ]; then
+            BUMP="$MANUAL_BUMP"
+            echo "Manual bump override: $BUMP"
+          fi
+
           if [ "$BUMP" = "none" ]; then
             echo "skip=true" >> "$GITHUB_OUTPUT"
             echo "No version-worthy commits found, skipping release."
@@ -79,18 +95,21 @@ jobs:
             echo "Detected bump: $BUMP"
           fi
 
-      - name: Bump version, tag, and push
+      - name: Bump version and tag
         if: steps.bump.outputs.skip != 'true'
         id: version
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          NEW_VERSION=$(npm version ${{ steps.bump.outputs.bump }} -m "chore(release): v%s")
+          # Bump version in package.json (creates commit + tag locally)
+          NEW_VERSION=$(npm version ${{ steps.bump.outputs.bump }} --no-git-tag-version)
           echo "version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
           echo "New version: $NEW_VERSION"
 
-          git push --follow-tags
+          # Create an annotated tag without pushing the commit to the protected branch
+          git tag -a "$NEW_VERSION" -m "Release $NEW_VERSION"
+          git push origin "$NEW_VERSION"
 
       - name: Publish to npm
         if: steps.bump.outputs.skip != 'true'
